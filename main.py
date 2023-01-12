@@ -1,0 +1,238 @@
+import requests
+import urllib3
+
+from launch import *
+
+# 定义主类
+class Main:
+
+    url = "https://www.locyanfrp.cn/api/"
+    proxy_temp = ""  # 用户所持有隧道ID暂存
+    proxy_list_id_type = {}
+
+    def __init__(self):
+        # 关闭keep-alive
+        s = requests.session()
+        s.keep_alive = False
+        # 设置重连次数为5
+        requests.DEFAULT_RETRIES = 5
+        # 关闭urllib3 不验证SSL产生的报错
+        urllib3.disable_warnings()
+
+        # 检查更新
+        version = "V1.0.0.2 Fix11"
+
+        url = "https://api.freenat.gq/App/update?pyversion=" + version
+
+        response = requests.get(url)
+        rs = response.json()
+
+        if rs["needupdate"] == 1:
+            print("恭喜！您使用的是最新版本！" + version)
+        else:
+            version_new = rs["version"]
+            print("版本更新可用！当前版本：" + version + " | 最新版本：" + version_new)
+
+        print("欢迎使用LoCyan Frp Application")
+        result = requests.get("https://api.locyanfrp.cn/App", verify=False)
+        result = result.json()
+        contents = result["contents"]
+        print("------------------------------------------------")
+        print("公告：")
+        print(contents)
+        print("------------------------------------------------")
+
+    def getuserinfo(self, node: str, code: str):  # 使用FrpPanel自带的API进行鉴权，判断用户是否有权限使用
+        result = requests.get(self.url + "?apitoken=LoCyanToken|" + node + "&user=" + code + "&action=checktoken", verify=False)
+        return result.text
+
+    def getserverlist(self):  # 获取所有服务器列表
+        url = "https://api.locyanfrp.cn/Proxies/GetServerList"
+        rs = requests.get(url, verify=False).json()
+        for i in rs:
+            server_id = i["id"]
+            server_name = i["name"]
+            server_ip = i["hostname"]
+            status = i["status"]
+            if status == "200":
+                print("ID:", server_id, "|", server_name, "[", server_ip, "]")
+
+    def getnamebycode(self, code):  # 通过token获取用户名
+        url = "https://api.locyanfrp.cn/Account/GetUserNameByFrpToken?token=" + code
+        rs = requests.get(url,verify=False).json()
+        username = rs["username"]
+        return username
+
+    def getproxy(self, node, user):  # 通过用户名获取用户隧道
+
+        url = "https://api.locyanfrp.cn/Proxies/GetProxiesListByNode?node=" + node + "&username=" + user
+        rs = requests.get(url, verify=False).json()
+
+        # 检查是否有隧道存在
+        if rs["count"] == 0:
+            return None
+        else:
+            # rs["proxies"] 是个列表
+            for i in rs["proxies"]:
+                # 鬼知道为什么本地端口是整数，然后远程是字符串
+                print("ID:", i["id"], "|", i["proxy_name"], "[", i["proxy_type"], "]", str(i["local_port"]), "->", i["remote_port"])
+                if len(self.proxy_temp) == 0:
+                    self.proxy_list_id_type[str(i["id"])] = i["proxy_type"]
+                    self.proxy_temp = str(i["id"])
+                else:
+                    self.proxy_list_id_type[str(i["id"])] = i["proxy_type"]
+                    self.proxy_temp = self.proxy_temp + " | " + str(i["id"])
+
+    def isproxyinuser(self, proxyid: str):  # 检查该隧道是否为该用户所有
+        if self.proxy_temp.find(proxyid) >= 0:
+            return 0
+        else:
+            return -1
+
+    def getserverinfo(self, id):
+
+        url = "https://api.locyanfrp.cn/Proxies/GetServerInfoByNode?node=" + id
+        rs = requests.get(url, verify=False).json()
+        server_id = rs["id"]
+        server_name = rs["name"]
+        server_ip = rs["hostname"]
+        server_port = rs["port"]
+        status = rs["status"]
+        return str(server_ip) + "|" + str(server_port)
+
+    def getproxyinfo(self, user, id1):
+
+        url = "https://api.locyanfrp.cn/Proxies/GetProxiesListByID?username=" + user + "&id=" + id1
+        rs = requests.get(url, verify=False).json()
+        # type1, lip, lp, rp, proxyname, cd
+        # rs["proxies"]是列表
+        for i in rs["proxies"]:
+            # i[3]:type i[4]:lip i[5]:lp i[11] rp i[8]:自定义域名(cd)
+            if self.proxy_list_id_type[id1] == "http" or self.proxy_list_id_type[id1] == "https":
+                return str(i["proxy_type"]) + "|" + str(i["local_ip"]) + "|" + str(i["local_port"]) + "|" + str(i["remote_port"]) + "|" + str(i["proxy_name"]) + "|" + i["domain"]
+            else:
+                return str(i["proxy_type"]) + "|" + str(i["local_ip"]) + "|" + str(i["local_port"]) + "|" + str(i["remote_port"]) + "|" + str(i["proxy_name"])
+
+main = Main()
+main.getserverlist()
+token_user = ""
+if os.path.exists("cfg.ini"):
+    f = open("cfg.ini", "r", encoding="utf-8")
+    token_user = f.read()
+    print("已读取到您上次使用的token：", token_user, "如果想要更换的话请在选择服务器的时候输入ct")
+    f.close()
+
+while True:
+    choose = input("请选择需要映射的服务器：")
+    if choose == "ct":
+        ct = input("请输入您要更换的token：")
+        f = open("cfg.ini", "w", encoding="utf-8")
+        f.write(ct)
+        f.close()
+        print("更换成功！")
+        choose = input("请选择需要映射的服务器：")
+        token_user = ct
+
+    if token_user == "":
+        token_user = input("请输入您的连接Token：")
+        f = open("cfg.ini", "w", encoding="utf-8")
+        f.write(token_user)
+        f.close()
+
+    print("开始进行鉴权，请稍等...")
+    a = main.getuserinfo(choose, token_user)
+    if "success" in a:
+        token_user_name = main.getnamebycode(token_user)
+        print("鉴权成功，欢迎您，指挥官：" + token_user_name)
+        print("支持多开，请用空格分隔每一个隧道ID，目前仅支持同一节点的多开")
+        while True:  # 反复弹出，直到输入正确
+            main.getproxy(node=choose, user=token_user_name)
+            proxyid = input(">> ")
+            print("选择ID：" + proxyid)
+            print("准备启动...")
+            ip, port = main.getserverinfo(choose).split("|")
+            if " " in proxyid:
+                print("=========================================")
+                print("你可以用这个地址连接你的隧道！")
+                print("检测到多个隧道多开，以下为链接方式列表：")
+                proxyid = proxyid.split(" ")
+                # 会清除frpc.ini内的全部内容，需要第一个执行
+                add_proxy_header(
+                    ip=ip,
+                    port=port,
+                    user=token_user
+                )
+                for i in proxyid:
+                    # 判断是否是HTTPS/HTTP映射，以便判断是否需要获取domain域名
+                    if main.proxy_list_id_type[i] == "http" or main.proxy_list_id_type[i] == "https":
+                        type1, lip, lp, rp, proxyname, cd = main.getproxyinfo(token_user_name, i).split("|")
+                    else:
+                        type1, lip, lp, rp, proxyname = main.getproxyinfo(token_user_name, i).split("|")
+                    if type1 == "http" or type1 == "https":
+                        print("ID: " + i + "连接地址：" + cd)
+                        more_proxy_http(
+                            ip=ip,
+                            port=port,
+                            type1=type1,
+                            lip=lip,
+                            lp=lp,
+                            rp=rp,
+                            proxyname=proxyname,
+                            cd=cd
+                        )
+                    else:
+                        print("ID: " + i + "连接地址：" + ip + ":" + rp)
+                        more_proxy_nohttp(
+                            ip=ip,
+                            port=port,
+                            type1=type1,
+                            lip=lip,
+                            lp=lp,
+                            rp=rp,
+                            proxyname=proxyname
+                        )
+
+                print("=========================================")
+                launchfrp()
+            else:
+                print("=========================================")
+                print("你可以用这个地址连接你的隧道！")
+                # 判断是否是HTTPS/HTTP映射，以便判断是否需要获取domain域名
+                if main.proxy_list_id_type[proxyid] == "http" or main.proxy_list_id_type[proxyid] == "https":
+                    type1, lip, lp, rp, proxyname, cd = main.getproxyinfo(token_user_name, proxyid).split("|")
+                else:
+                    type1, lip, lp, rp, proxyname = main.getproxyinfo(token_user_name, proxyid).split("|")
+                if type1 == "http" or type1 == "https":
+                    print("ID: " + proxyid + "连接地址：" + cd)
+                    print("=========================================")
+                    getlaunchconf_http(
+                        ip=ip,
+                        port=port,
+                        user=token_user,
+                        type1=type1,
+                        lip=lip,
+                        lp=lp,
+                        rp=rp,
+                        proxyname=proxyname,
+                        cd=cd
+                    )
+                else:
+                    print("ID: " + proxyid + "连接地址：" + ip + ":" + rp)
+                    print("=========================================")
+                    getlaunchconf_nohttp(
+                        ip=ip,
+                        port=port,
+                        user=token_user,
+                        type1=type1,
+                        lip=lip,
+                        lp=lp,
+                        rp=rp,
+                        proxyname=proxyname
+                    )
+
+                launchfrp()
+            break
+        break
+    else:
+        print("鉴权失败，请检查您的信息以及你是否有权限使用该服务器，您可以尝试输入ct更换token秘钥")
+        continue
