@@ -1,2 +1,1 @@
-# LoCyanLauncherForPy
-LoCyan Team 旗下 LoCyanFrp(LCF)的Python版本启动器
+LoCyan Team 旗下 LoCyanFrp 启动器 | Powered by Python
