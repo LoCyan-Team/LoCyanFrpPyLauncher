@@ -1,0 +1,7 @@
+[tool.lndl.nuitka.cli]
+main = "main.py"
+# --main=main.py
+standalone = true
+onefile = true
+[tool.lndl.nuitka]
+script = "launch.py"
