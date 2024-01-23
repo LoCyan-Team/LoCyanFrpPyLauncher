@@ -3,9 +3,9 @@ import urllib3
 
 from launch import *
 
+
 # 定义主类
 class Main:
-
     url = "https://www.locyanfrp.cn/api/"
     proxy_temp = ""  # 用户所持有隧道ID暂存
     proxy_list_id_type = {}
@@ -43,11 +43,19 @@ class Main:
         print(contents)
         print("------------------------------------------------")
 
-    def getuserinfo(self, node: str, code: str):  # 使用FrpPanel自带的API进行鉴权，判断用户是否有权限使用
-        result = self.r.get(self.url + "?apitoken=LoCyanToken|" + node + "&user=" + code + "&action=checktoken", verify=False)
+    def get_user_info(self, node: str, code: str):  # 使用FrpPanel自带的API进行鉴权，判断用户是否有权限使用
+        result = self.r.get(
+            self.url
+            + "?apitoken=LoCyanToken|"
+            + node
+            + "&user="
+            + code
+            + "&action=checktoken",
+            verify=False,
+        )
         return result.text
 
-    def getserverlist(self):  # 获取所有服务器列表
+    def get_server_list(self):  # 获取所有服务器列表
         url = "https://api.locyanfrp.cn/Proxies/GetServerList"
         rs = self.r.get(url, verify=False).json()
         for i in rs:
@@ -58,15 +66,19 @@ class Main:
             if status == "200":
                 print("ID:", server_id, "|", server_name, "[", server_ip, "]")
 
-    def getnamebycode(self, code):  # 通过token获取用户名
+    def get_name_bycode(self, code):  # 通过token获取用户名
         url = "https://api.locyanfrp.cn/Account/GetUserNameByFrpToken?token=" + code
-        rs = self.r.get(url,verify=False).json()
+        rs = self.r.get(url, verify=False).json()
         username = rs["username"]
         return username
 
     def getproxy(self, node, user):  # 通过用户名获取用户隧道
-
-        url = "https://api.locyanfrp.cn/Proxies/GetProxiesListByNode?node=" + node + "&username=" + user
+        url = (
+            "https://api.locyanfrp.cn/Proxies/GetProxiesListByNode?node="
+            + node
+            + "&username="
+            + user
+        )
         rs = self.r.get(url, verify=False).json()
 
         # 检查是否有隧道存在
@@ -76,7 +88,18 @@ class Main:
             # rs["proxies"] 是个列表
             for i in rs["proxies"]:
                 # 鬼知道为什么本地端口是整数，然后远程是字符串
-                print("ID:", i["id"], "|", i["proxy_name"], "[", i["proxy_type"], "]", str(i["local_port"]), "->", i["remote_port"])
+                print(
+                    "ID:",
+                    i["id"],
+                    "|",
+                    i["proxy_name"],
+                    "[",
+                    i["proxy_type"],
+                    "]",
+                    str(i["local_port"]),
+                    "->",
+                    i["remote_port"],
+                )
                 if len(self.proxy_temp) == 0:
                     self.proxy_list_id_type[str(i["id"])] = i["proxy_type"]
                     self.proxy_temp = str(i["id"])
@@ -91,7 +114,6 @@ class Main:
             return -1
 
     def getserverinfo(self, id):
-
         url = "https://api.locyanfrp.cn/Proxies/GetServerInfoByNode?node=" + id
         rs = self.r.get(url, verify=False).json()
         server_id = rs["id"]
@@ -101,21 +123,52 @@ class Main:
         status = rs["status"]
         return str(server_ip) + "|" + str(server_port)
 
-    def getproxyinfo(self, user, id1):
-
-        url = "https://api.locyanfrp.cn/Proxies/GetProxiesListByID?username=" + user + "&id=" + id1
+    def get_proxy_info(self, user, id1):
+        url = (
+            "https://api.locyanfrp.cn/Proxies/GetProxiesListByID?username="
+            + user
+            + "&id="
+            + id1
+        )
         rs = self.r.get(url, verify=False).json()
         # type1, lip, lp, rp, proxyname, cd
         # rs["proxies"]是列表
         for i in rs["proxies"]:
             # i[3]:type i[4]:lip i[5]:lp i[11] rp i[8]:自定义域名(cd)
-            if self.proxy_list_id_type[id1] == "http" or self.proxy_list_id_type[id1] == "https":
-                return str(i["proxy_type"]) + "|" + str(i["local_ip"]) + "|" + str(i["local_port"]) + "|" + str(i["remote_port"]) + "|" + str(i["proxy_name"]) + "|" + i["domain"]
+            if (
+                self.proxy_list_id_type[id1] == "http"
+                or self.proxy_list_id_type[id1] == "https"
+            ):
+                return (
+                    str(i["proxy_type"])
+                    + "|"
+                    + str(i["local_ip"])
+                    + "|"
+                    + str(i["local_port"])
+                    + "|"
+                    + str(i["remote_port"])
+                    + "|"
+                    + str(i["proxy_name"])
+                    + "|"
+                    + i["domain"]
+                )
             else:
-                return str(i["proxy_type"]) + "|" + str(i["local_ip"]) + "|" + str(i["local_port"]) + "|" + str(i["remote_port"]) + "|" + str(i["proxy_name"])
+                return (
+                    str(i["proxy_type"])
+                    + "|"
+                    + str(i["local_ip"])
+                    + "|"
+                    + str(i["local_port"])
+                    + "|"
+                    + str(i["remote_port"])
+                    + "|"
+                    + str(i["proxy_name"])
+                )
+
 
 main = Main()
-main.getserverlist()
+
+main.get_server_list()
 token_user = ""
 if os.path.exists("cfg.ini"):
     f = open("cfg.ini", "r", encoding="utf-8")
@@ -141,9 +194,9 @@ while True:
         f.close()
 
     print("开始进行鉴权，请稍等...")
-    a = main.getuserinfo(choose, token_user)
+    a = main.get_user_info(choose, token_user)
     if "success" in a:
-        token_user_name = main.getnamebycode(token_user)
+        token_user_name = main.get_name_bycode(token_user)
         print("鉴权成功，欢迎您，指挥官：" + token_user_name)
         print("支持多开, 请用空格分隔每一个隧道ID, 目前仅支持同一节点的多开")
         while True:  # 反复弹出，直到输入正确
@@ -158,22 +211,25 @@ while True:
                 print("检测到多个隧道多开，以下为链接方式列表：")
                 proxyid = proxyid.split(" ")
                 # 会清除frpc.ini内的全部内容，需要第一个执行
-                add_proxy_header(
-                    ip=ip,
-                    port=port,
-                    user=token_user
-                )
+                add_proxy_header(ip=ip, port=port, user=token_user)
                 for i in proxyid:
                     # 判断是否是HTTPS/HTTP映射，以便判断是否需要获取domain域名
                     try:
-                        if main.proxy_list_id_type[i] == "http" or main.proxy_list_id_type[i] == "https":
-                            type1, lip, lp, rp, proxyname, cd = main.getproxyinfo(token_user_name, i).split("|")
+                        if (
+                            main.proxy_list_id_type[i] == "http"
+                            or main.proxy_list_id_type[i] == "https"
+                        ):
+                            type1, lip, lp, rp, proxyname, cd = main.get_proxy_info(
+                                token_user_name, i
+                            ).split("|")
                         else:
-                            type1, lip, lp, rp, proxyname = main.getproxyinfo(token_user_name, i).split("|")
+                            type1, lip, lp, rp, proxyname = main.get_proxy_info(
+                                token_user_name, i
+                            ).split("|")
                     except KeyError as e:
                         print("隧道不存在!")
                         continue
-                
+
                     if type1 == "http" or type1 == "https":
                         print("ID: " + i + "连接地址：" + cd)
                         more_proxy_http(
@@ -184,7 +240,7 @@ while True:
                             lp=lp,
                             rp=rp,
                             proxyname=proxyname,
-                            cd=cd
+                            cd=cd,
                         )
                     else:
                         print("ID: " + i + "连接地址：" + ip + ":" + rp)
@@ -195,7 +251,7 @@ while True:
                             lip=lip,
                             lp=lp,
                             rp=rp,
-                            proxyname=proxyname
+                            proxyname=proxyname,
                         )
 
                 print("=========================================")
@@ -205,10 +261,17 @@ while True:
                 print("你可以用这个地址连接你的隧道！")
                 # 判断是否是HTTPS/HTTP映射，以便判断是否需要获取domain域名
                 try:
-                    if main.proxy_list_id_type[proxyid] == "http" or main.proxy_list_id_type[proxyid] == "https":
-                        type1, lip, lp, rp, proxyname, cd = main.getproxyinfo(token_user_name, proxyid).split("|")
+                    if (
+                        main.proxy_list_id_type[proxyid] == "http"
+                        or main.proxy_list_id_type[proxyid] == "https"
+                    ):
+                        type1, lip, lp, rp, proxyname, cd = main.get_proxy_info(
+                            token_user_name, proxyid
+                        ).split("|")
                     else:
-                        type1, lip, lp, rp, proxyname = main.getproxyinfo(token_user_name, proxyid).split("|")
+                        type1, lip, lp, rp, proxyname = main.get_proxy_info(
+                            token_user_name, proxyid
+                        ).split("|")
                 except KeyError as e:
                     print("隧道不存在!")
                     continue
@@ -224,7 +287,7 @@ while True:
                         lp=lp,
                         rp=rp,
                         proxyname=proxyname,
-                        cd=cd
+                        cd=cd,
                     )
                 else:
                     print("ID: " + proxyid + "连接地址：" + ip + ":" + rp)
@@ -237,7 +300,7 @@ while True:
                         lip=lip,
                         lp=lp,
                         rp=rp,
-                        proxyname=proxyname
+                        proxyname=proxyname,
                     )
 
                 launchfrp()
