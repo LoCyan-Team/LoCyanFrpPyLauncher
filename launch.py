@@ -33,7 +33,7 @@ use_compression = true
     new_nohttp = new_nohttp.replace("[rp]", rp)
     new_nohttp = new_nohttp.replace("[proxyname]", proxyname)
     print(new_nohttp)
-    with open(dirname + "\\frpc.ini", mode='w') as f:
+    with open(dirname + "\\frpc.ini", mode="w") as f:
         f.write(new_nohttp)
         f.close()
 
@@ -72,7 +72,7 @@ use_compression = true
     new_http = new_http.replace('["', "")
     new_http = new_http.replace('"]', "")
     print(new_http)
-    with open(dirname + "\\frpc.ini", mode='w') as f:
+    with open(dirname + "\\frpc.ini", mode="w") as f:
         f.write(new_http)
         f.close()
 
@@ -154,4 +154,4 @@ dns_server = 114.114.114.114
 
 
 def launchfrp():
-    os.system("start.bat")
+    os.system("frpc.exe -c frpc.ini")
