@@ -7,8 +7,18 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## 使用pyinstaller构建:
+## 创建虚拟环境（可选）：
 
 ```bash
-pyinstaller -F main.py -p launch.py
+python -m venv venv/
+```
+### 激活venv环境
+```powershell
+./.venv/Scripts/activate
+```
+
+## 使用nuitka构建:
+
+```bash
+lndl_nuitka . -y
 ```
