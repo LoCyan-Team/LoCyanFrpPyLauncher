@@ -159,7 +159,13 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
+# nuitka build
 main.build/
 main.dist/
 main.onefile-build/
 main.exe
+
+# frpc config
+cfg.ini
+frpc.ini
+frpc.exe
