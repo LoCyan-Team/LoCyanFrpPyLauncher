@@ -2,10 +2,10 @@ import os
 import sys
 
 
-def getlaunchconf_nohttp(ip, port, user, type1, lip, lp, rp, proxyname):
+def get_launch_conf_no_http(ip, port, user, type1, lip, lp, rp, proxyname):
     dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
 
-    old_nohttp = """[common]
+    old_no_http = """[common]
 server_addr = [serverip]
 server_port = [serverport]
 tcp_mux = true
@@ -24,7 +24,7 @@ use_encryption = true
 use_compression = true
     """
 
-    new_nohttp = old_nohttp.replace("[serverip]", ip)
+    new_nohttp = old_no_http.replace("[serverip]", ip)
     new_nohttp = new_nohttp.replace("[serverport]", port)
     new_nohttp = new_nohttp.replace("[user]", user)
     new_nohttp = new_nohttp.replace("[lip]", lip)
@@ -38,7 +38,7 @@ use_compression = true
         f.close()
 
 
-def getlaunchconf_http(ip, port, user, type1, lip, lp, rp, proxyname, cd):
+def get_launch_conf_http(ip, port, user, type1, lip, lp, rp, proxyname, cd):
     dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
     old_http = """[common]
 server_addr = [serverip]

@@ -21,7 +21,7 @@ class Main:
         urllib3.disable_warnings()
 
         # 检查更新
-        version = "V1.0.0.2 Fix11"
+        version = "V1.0.0.23 Fix11"
 
         url = "https://api.locyanfrp.cn/App/update?pyversion=" + version
 
@@ -66,7 +66,7 @@ class Main:
             if status == "200":
                 print("ID:", server_id, "|", server_name, "[", server_ip, "]")
 
-    def get_name_bycode(self, code):  # 通过token获取用户名
+    def get_name_by_code(self, code):  # 通过token获取用户名
         url = "https://api.locyanfrp.cn/Account/GetUserNameByFrpToken?token=" + code
         rs = self.r.get(url, verify=False).json()
         username = rs["username"]
@@ -107,13 +107,13 @@ class Main:
                     self.proxy_list_id_type[str(i["id"])] = i["proxy_type"]
                     self.proxy_temp = self.proxy_temp + " | " + str(i["id"])
 
-    def isproxyinuser(self, proxyid: str):  # 检查该隧道是否为该用户所有
+    def is_proxy_in_user(self):  # 检查该隧道是否为该用户所有
         if self.proxy_temp.find(proxyid) >= 0:
             return 0
         else:
             return -1
 
-    def getserverinfo(self, id):
+    def get_server_info(self, id):
         url = "https://api.locyanfrp.cn/Proxies/GetServerInfoByNode?node=" + id
         rs = self.r.get(url, verify=False).json()
         server_id = rs["id"]
@@ -196,7 +196,7 @@ while True:
     print("开始进行鉴权，请稍等...")
     a = main.get_user_info(choose, token_user)
     if "success" in a:
-        token_user_name = main.get_name_bycode(token_user)
+        token_user_name = main.get_name_by_code(token_user)
         print("鉴权成功，欢迎您，指挥官：" + token_user_name)
         print("支持多开, 请用空格分隔每一个隧道ID, 目前仅支持同一节点的多开")
         while True:  # 反复弹出，直到输入正确
@@ -204,7 +204,7 @@ while True:
             proxyid = input(">> ")
             print("选择ID: " + proxyid)
             print("准备启动...")
-            ip, port = main.getserverinfo(choose).split("|")
+            ip, port = main.get_server_info(choose).split("|")
             if " " in proxyid:
                 print("=========================================")
                 print("你可以用这个地址连接你的隧道！")
@@ -278,7 +278,7 @@ while True:
                 if type1 == "http" or type1 == "https":
                     print("ID: " + proxyid + "连接地址：" + cd)
                     print("=========================================")
-                    getlaunchconf_http(
+                    get_launch_conf_http(
                         ip=ip,
                         port=port,
                         user=token_user,
@@ -292,7 +292,7 @@ while True:
                 else:
                     print("ID: " + proxyid + "连接地址：" + ip + ":" + rp)
                     print("=========================================")
-                    getlaunchconf_nohttp(
+                    get_launch_conf_no_http(
                         ip=ip,
                         port=port,
                         user=token_user,
