@@ -8,7 +8,6 @@ idna==3.4
 macholib==1.16.2
 onnxruntime==1.15.0
 nuitka==1.9.7
-pyinstaller-hooks-contrib==2023.8
 requests==2.31.0
 urllib3==2.0.6
 lib-not-dr[nuitka]==0.4.0
