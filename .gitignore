@@ -164,8 +164,11 @@ main.build/
 main.dist/
 main.onefile-build/
 main.exe
+main.bin
 
 # frpc config
 cfg.ini
 frpc.ini
 frpc.exe
+# python-pip
+get-pip.py
