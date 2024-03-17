@@ -2,6 +2,7 @@ import requests
 import urllib3
 
 from launch import *
+from download import *
 
 
 # 定义主类
