@@ -11,4 +11,7 @@ nuitka==1.9.7
 requests==2.31.0
 urllib3==2.2.1
 lib-not-dr[nuitka]==0.4.0
+loguru>=0.7.2
+logger>=1.4.0
+tqdm>=4.66.2
 # black==24.1.0
